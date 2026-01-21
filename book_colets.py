@@ -1,34 +1,71 @@
 from playwright.sync_api import sync_playwright
+from dotenv import load_dotenv
+import os
 import time
 
-EMAIL = "YOUR_EMAIL_HERE"
-PASSWORD = "YOUR_PASSWORD_HERE"
+# -------- CONFIG --------
+CLASS_NAME = "EARLY RISE YIN & YANG YOGA 13+"
+PAUSE = 5
+# ------------------------
+
+load_dotenv()
+
+EMAIL = os.getenv("COLETS_EMAIL")
+PASSWORD = os.getenv("COLETS_PASSWORD")
+
+if not EMAIL or not PASSWORD:
+    raise RuntimeError("Missing COLETS_EMAIL or COLETS_PASSWORD")
 
 with sync_playwright() as p:
-    browser = p.chromium.launch(headless=False)  # visible for now
-    page = browser.new_page()
+    browser = p.chromium.launch(headless=True)
+    context = browser.new_context()
+    page = context.new_page()
 
-    # Go directly to login page
+    # --- Login ---
     page.goto("https://bookings.coletshealthclub.co.uk/login.aspx")
+    time.sleep(PAUSE)
 
-    # Fill login form
-    page.fill('input[type="email"], input[name*="Email"]', EMAIL)
-    page.fill('input[type="password"], input[name*="Password"]', PASSWORD)
+    page.get_by_role("textbox", name="Email").fill(EMAIL)
+    page.get_by_role("textbox", name="Password").fill(PASSWORD)
+    page.get_by_role("link", name="Log In").click()
+    print("✅ Logged in")
 
-    # Optional: stay logged in
-    stay_logged = page.query_selector('input[type="checkbox"]')
-    if stay_logged:
-        stay_logged.check()
+    time.sleep(PAUSE)
 
-    # Click login
-    page.click('text=LOG IN')
+    # --- Open hamburger menu (IMPORTANT: span click) ---
+    page.locator("#mobToggleInner span").click()
+    time.sleep(PAUSE)
 
-    # Wait for navigation
-    page.wait_for_load_state("networkidle")
+    # --- Navigate to Fitness Classes ---
+    page.get_by_role("link", name="Classes  ").click()
+    time.sleep(PAUSE)
 
-    print("✅ Logged in successfully")
+    page.get_by_role("link", name="Fitness Classes", exact=True).click()
+    time.sleep(PAUSE)
 
-    # Pause so you can visually confirm success
-    time.sleep(10)
+    # --- Move to next week ---
+    page.get_by_role("link", name="Next→").click()
+    print("➡️ Moved to next week")
+    time.sleep(PAUSE)
 
+    # --- Click class tile (EXACT ID path) ---
+    page.locator(
+        "div[id*='ClassRepeater']",
+        has_text=CLASS_NAME
+    ).first.click()
+
+    print(f"🟦 Opened class: {CLASS_NAME}")
+    time.sleep(PAUSE)
+
+    # --- Book (first click) ---
+    page.get_by_role("link", name="Book", exact=True).click()
+    time.sleep(PAUSE)
+
+    # --- Confirm booking (second click) ---
+    page.get_by_role("link", name="Book", exact=True).click()
+
+    print(f"🎉 BOOKED: {CLASS_NAME}")
+
+    time.sleep(PAUSE)
+    page.screenshot(path="booking_success.png")
     browser.close()
