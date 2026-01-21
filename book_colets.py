@@ -4,7 +4,8 @@ import os
 import time
 
 # -------- CONFIG --------
-CLASS_NAME = "EARLY RISE YIN & YANG YOGA 13+"
+CLASS_NAME = "PILATES IMPROVER 13+"
+CLASS_INDEX = 0  # 0 = first, 1 = second
 PAUSE = 5
 # ------------------------
 
@@ -57,10 +58,21 @@ with sync_playwright() as p:
     time.sleep(PAUSE)
 
     # --- Click class tile (EXACT ID path) ---
-    page.locator(
-        "div[id*='ClassRepeater']",
+    # --- Find visible class tiles with this name ---
+    class_tiles = page.locator(
+        "div[id*='ClassRepeater']:visible",
         has_text=CLASS_NAME
-    ).first.click()
+    )
+
+    # Safety check
+    if class_tiles.count() <= CLASS_INDEX:
+        raise RuntimeError(
+            f"Found {class_tiles.count()} visible '{CLASS_NAME}' classes, "
+            f"but CLASS_INDEX={CLASS_INDEX} is out of range"
+        )
+
+    # --- Click the chosen instance ---
+    class_tiles.nth(CLASS_INDEX).click()
 
     print(f"🟦 Opened class: {CLASS_NAME}")
     time.sleep(PAUSE)
