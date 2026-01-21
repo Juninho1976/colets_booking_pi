@@ -17,7 +17,15 @@ if not EMAIL or not PASSWORD:
     raise RuntimeError("Missing COLETS_EMAIL or COLETS_PASSWORD")
 
 with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
+    browser = p.chromium.launch(
+    headless=True,
+    args=[
+        "--disable-gpu",
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        "--single-process",
+    ],
+    )
     context = browser.new_context()
     page = context.new_page()
 
