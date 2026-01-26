@@ -74,39 +74,18 @@ with sync_playwright() as p:
     # --- Click the chosen instance ---
     class_tiles.nth(CLASS_INDEX).click()
 
-    # --- After opening class tile ---
     print(f"🟦 Opened class: {CLASS_NAME}")
-    page.screenshot(path="03_class_opened.png")
     time.sleep(PAUSE)
 
-    # --- Look for booking actions inside the class panel ---
-    book_button = page.locator("a.bookClassButton:visible")
-    waitlist_button = page.get_by_role("link", name="Join waiting list", exact=True)
-
-    # Give the panel a moment to settle
+    # --- Book (first click) ---
+    page.get_by_role("link", name="Book", exact=True).click()
     time.sleep(PAUSE)
 
-    if book_button.count() > 0:
-        print("🟢 Book button available — attempting booking")
-        book_button.first.click()
-        time.sleep(PAUSE)
+    # --- Confirm booking (second click) ---
+    page.get_by_role("link", name="Book", exact=True).click()
 
-        # Confirm booking (second click)
-        page.get_by_role("link", name="Book", exact=True).click()
-        print(f"🎉 BOOKED: {CLASS_NAME}")
-        page.screenshot(path="04_booked.png")
+    print(f"🎉 BOOKED: {CLASS_NAME}")
 
-    elif waitlist_button.count() > 0:
-        print("🟡 Class full — joining waiting list")
-        waitlist_button.click()
-        page.screenshot(path="04_waiting_list.png")
-
-    else:
-        print("🔴 No booking or waiting list button found")
-        page.screenshot(path="04_no_action_found.png")
-        raise RuntimeError("No actionable booking state found")
-    
-    
     time.sleep(PAUSE)
     page.screenshot(path="booking_success.png")
     browser.close()
