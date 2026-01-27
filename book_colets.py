@@ -3,17 +3,24 @@ from dotenv import load_dotenv
 import os
 import time
 
+time.sleep(2)
+print("🕕 Bot started at", time.strftime("%Y-%m-%d %H:%M:%S"))
+
+load_dotenv()
+
 # -------- CONFIG --------
-CLASS_NAME = "BACK CARE"
+CLASS_NAME = os.getenv("COLETS_CLASS_NAME")
 CLASS_INDEX = 0
 PAUSE = 3
 MAX_ACTION_ATTEMPTS = 5
 # ------------------------
 
-load_dotenv()
 
 EMAIL = os.getenv("COLETS_EMAIL")
 PASSWORD = os.getenv("COLETS_PASSWORD")
+
+if not CLASS_NAME:
+    raise RuntimeError("Missing COLETS_CLASS_NAME in .env")
 
 if not EMAIL or not PASSWORD:
     raise RuntimeError("Missing COLETS_EMAIL or COLETS_PASSWORD")
